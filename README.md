@@ -15,6 +15,8 @@ export PATH=${PWD}/bin:${PATH}
 If you want to persist this you may want to add this to `PATH` in `zshrc` or `bashrc`. 
 ## Usage
 
+> **NOTE**: you need admin permissions to run this on you macOS
+
 ```
 Usage: cumb COMMAND
   COMMANDS:
@@ -52,6 +54,9 @@ Currently using name servers:
 Password:
 Umbrella is stopped
 Currently using name servers:
+❯ cumb status
+Umbrella is stopped
+Currently using name servers:
 ```
 
 **start**
@@ -62,6 +67,23 @@ Currently using name servers:
 /Library/LaunchAgents/com.cisco.umbrella.menu.plist: service already loaded
 Umbrella is running. Checking debug.opendns.com DNS…
 Umbrella is not functioning correctly!
+Currently using name servers:
+
+sleep 30
+
+❯ cumb status
+Umbrella is running. Checking debug.opendns.com DNS…
+debug.opendns.com.	0	IN	TXT	"server r5.lon"
+debug.opendns.com.	0	IN	TXT	"device 010182cb7cb0be0c"
+debug.opendns.com.	0	IN	TXT	"remoteip 192.168.1.180"
+debug.opendns.com.	0	IN	TXT	"flags 40034 0 186040 1E10000074060000060039F0400FE2080081681"
+debug.opendns.com.	0	IN	TXT	"originid 472625284"
+debug.opendns.com.	0	IN	TXT	"orgid 2353377"
+debug.opendns.com.	0	IN	TXT	"orgflags 100A6"
+debug.opendns.com.	0	IN	TXT	"actype 0"
+debug.opendns.com.	0	IN	TXT	"bundle 6892016"
+debug.opendns.com.	0	IN	TXT	"source 95.149.61.43:61225"
+debug.opendns.com.	0	IN	TXT	"dnscrypt enabled (716A7A6D6D486A53)"
 Currently using name servers:
 ```
 
