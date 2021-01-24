@@ -1,0 +1,103 @@
+#!/usr/bin/env bash
+
+# Forked from
+# Quinn Comendant <quinn@strangecode.com>
+# https://gist.github.com/quinncomendant/3be731567e529415d5ee
+# Since 25 Jan 2015
+# Version 1.1
+
+# Updated by
+# Kenichi Shibata
+# https://github.com/kenichi-shibata/cumb
+# This is for research purposes only.
+# Do not use this software for illegal or unauthorized uses.
+
+
+CMD=$1;
+
+if [[ ${id -u} = 0 ]]; then
+    echo "You mustn't be root when executing this script";
+    exit;
+fi
+
+function usage {
+    echo "Usage: $(basename "$0") COMMAND
+  COMMANDS:
+    stop    Run sudo launchctl unload /Library/LaunchDaemons/com.opendns.osx.RoamingClientConfigUpdater.plist
+    start   Run sudo launchctl load /Library/LaunchDaemons/com.opendns.osx.RoamingClientConfigUpdater.plist
+    restart Stop umbrella, then start again.
+    list    Check all PIDs if they are running using launchctl
+    dig     Check OpenDNS records txt, if you can dig it, it means you are behind umbrella client and OpenDNS
+    cat     Print the Config files,
+    edit    Update this function, hardcoded with Kenichi's setup does not work outside that
+    status  Is umbrella running?
+";
+    exit 1;
+}
+function start () {
+    sudo launchctl load /Library/LaunchDaemons/com.opendns.osx.RoamingClientConfigUpdater.plist;
+    launchctl load /Library/LaunchAgents/com.opendns.osx.RoamingClientMenubar.plist;
+    launchctl load /Library/LaunchAgents/com.cisco.umbrella.menu.plist;
+    sleep 1;
+    status;
+}
+function stop () {
+    sudo launchctl remove com.opendns.osx.RoamingClientConfigUpdater;
+    launchctl remove com.opendns.osx.RoamingClientMenubar;
+    sudo killall OpenDNSDiagnostic &>/dev/null;
+    sleep 1;
+    status;
+}
+function status () {
+    ps auwwx | grep -E "dnscrypt|RoamingClientMenubar|dns-updater" | grep -vq egrep;
+    if [[ 0 == "$?" ]]; then
+        echo "Umbrella is running. Checking debug.opendns.com DNS…";
+        dig debug.opendns.com txt +time=2 +tries=1 +short | sed 's/^"/  "/' | grep '"';
+        [[ 1 == "$?" ]] && echo "Umbrella is not functioning correctly!"
+    else
+        echo "Umbrella is stopped";
+        grep -q 127.0.0.1 /etc/resolv.conf && echo "Without umbrella running, you'll need to remove 127.0.0.1 from your DNS servers before you can resolve domains.";
+    fi
+    echo "Currently using name servers: $(cat /etc/resolv.conf | grep nameserver | sed 's/nameserver //' | tr '\n' ' ')"
+}
+
+function list() {
+  launchctl list | grep -E "opendns|umbrella"
+}
+
+function edit() {
+  FILE=~/.home/ken/dot/local/bin/cumb
+  if [ ! -f "$FILE" ]; then
+      echo "$FILE does not exists."
+      echo "You are not ken so you cannot use this function, rewrite this piece of code if you want to use it"
+  fi
+  vim $FILE
+}
+
+function dig() {
+  command dig debug.opendns.com txt
+  exit 0;
+}
+
+function cat() {
+  command echo "\n/Library/LaunchAgents/com.cisco.umbrella.menu.plist \n";
+  command cat /Library/LaunchAgents/com.cisco.umbrella.menu.plist;
+  command echo "\n/Library/LaunchDaemons/com.opendns.osx.RoamingClientConfigUpdater.plist \n";
+  command cat /Library/LaunchDaemons/com.opendns.osx.RoamingClientConfigUpdater.plist;
+
+  exit 0;
+}
+
+case $CMD in
+    (start) start;;
+    (stop) stop;;
+    (restart) stop && start;;
+    (status) status;;
+    (list) list;;
+    (edit) edit;;
+    (dig) dig;;
+    (cat) cat;;
+    (*) usage;;
+esac
+
+exit 0;
