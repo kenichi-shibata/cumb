@@ -15,7 +15,7 @@
 
 CMD=$1;
 
-if [[ ${id -u} = 0 ]]; then
+if [[ `id -u` = 0 ]]; then
     echo "You mustn't be root when executing this script";
     exit;
 fi
@@ -29,6 +29,7 @@ function usage {
     list    Check all PIDs if they are running using launchctl
     dig     Check OpenDNS records txt, if you can dig it, it means you are behind umbrella client and OpenDNS
     cat     Print the Config files,
+    flush   Flush the DNS sometimes your DNS Servers needs to be flushed if you stop umbrella client (wifi only)
     edit    Update this function, hardcoded with Kenichi's setup does not work outside that
     status  Is umbrella running?
 ";
@@ -79,6 +80,15 @@ function dig() {
   exit 0;
 }
 
+function flush() {
+  sudo networksetup -setdnsservers Wi-Fi 8.8.8.8 8.8.4.4 1.1.1.1
+}
+
+function flush-revert() {
+  sudo networksetup -setdnsservers Wi-Fi empty
+}
+
+
 function cat() {
   command echo "\n/Library/LaunchAgents/com.cisco.umbrella.menu.plist \n";
   command cat /Library/LaunchAgents/com.cisco.umbrella.menu.plist;
@@ -97,6 +107,7 @@ case $CMD in
     (edit) edit;;
     (dig) dig;;
     (cat) cat;;
+    (flush) flush;;
     (*) usage;;
 esac
 
