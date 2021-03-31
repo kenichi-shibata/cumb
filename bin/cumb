@@ -35,6 +35,7 @@ function usage {
 ";
     exit 1;
 }
+
 function start () {
     sudo launchctl load /Library/LaunchDaemons/com.opendns.osx.RoamingClientConfigUpdater.plist;
     launchctl load /Library/LaunchAgents/com.opendns.osx.RoamingClientMenubar.plist;
@@ -49,6 +50,39 @@ function stop () {
     sleep 1;
     status;
 }
+
+function start-falcon() {
+    launchctl load /Library/LaunchAgents/com.crowdstrike.falcon.UserAgent.plist
+    sleep 1;
+}
+
+function stop-falcon() {
+    launchctl remove com.crowdstrike.falcon.UserAgent
+    sleep 1;
+}
+
+function start-mcafee() {
+    launchctl load /Library/LaunchAgents/com.mcafee.menulet.plist
+    launchctl load /Library/LaunchAgents/com.mcafee.reporter.plist
+    sleep 1;
+}
+
+function stop-mcafee() {
+    launchctl remove com.mcafee.menulet.plist
+    launchctl remove com.mcafee.reporter.plist
+    sleep 1;
+}
+
+function start-jamf() {
+    launchctl load /Library/LaunchAgents/com.jamfsoftware.jamf.agent.plist
+    sleep 1;
+}
+
+function stop-jamf() {
+    launchctl remove com.jamfsoftware.jamf.agent
+    sleep 1;
+}
+
 function status () {
     ps auwwx | grep -E "dnscrypt|RoamingClientMenubar|dns-updater" | grep -vq egrep;
     if [[ 0 == "$?" ]]; then
@@ -101,6 +135,14 @@ function cat() {
 case $CMD in
     (start) start;;
     (stop) stop;;
+    (start-falcon) start-falcon;;
+    (stop-falcon) stop-falcon;;
+    (start-mcafee) start-mcafee;;
+    (stop-mcafee) stop-mcafee;;
+    (start-jamf) start-jamf;;
+    (stop-jamf) stop-jamf;;
+    (start-all) start && start-falcon && start-mcafee && start-jamf;;
+    (stop-all) stop && stop-falcon && stop-mcafee && stop-jamf;;
     (restart) stop && start;;
     (status) status;;
     (list) list;;
